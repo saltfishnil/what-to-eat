@@ -6,241 +6,360 @@
   <title>今晚吃什么？</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft Yahei", sans-serif; }
-    body { 
-      background: #f7f8fa; 
+    body {
+      background: #f7f9fc;
+      display: flex;
+      min-height: 100vh;
+      padding: 20px;
+      gap: 24px;
+    }
+    .sidebar {
+      width: 260px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    .filter-group {
+      margin-bottom: 16px;
+    }
+    .filter-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #555;
+    }
+    .filter-group button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 6px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .filter-group button.active {
+      background: #ff6b6b;
+      color: #fff;
+      border-color: #ff6b6b;
+    }
+    .btn-generate {
+      width: 100%;
+      padding: 12px;
+      background: #ff6b6b;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
     }
-    h1 { 
-      color: #333; 
-      font-size: 2.5rem;
-      margin-bottom: 30px;
+    h1 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 24px;
     }
-    
     .wheel-box {
       position: relative;
-      width: 350px;
-      height: 350px;
-      margin-bottom: 30px;
+      width: 360px;
+      height: 360px;
+      margin-bottom: 24px;
     }
     .pointer {
       position: absolute;
-      top: -15px;
+      top: -16px;
       left: 50%;
       transform: translateX(-50%);
       width: 0;
       height: 0;
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-top: 25px solid #ff4757;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 26px solid #ff4757;
       z-index: 10;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     }
     canvas {
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0,0,0,0.15);
       background: #fff;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
-
     .btn-group {
       display: flex;
-      gap: 20px;
+      gap: 16px;
     }
     button {
-      background: #ff6b6b;
-      color: white;
-      border: none;
-      padding: 16px 40px;
+      padding: 14px 32px;
       border-radius: 30px;
-      font-size: 18px;
+      border: none;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+      transition: 0.2s;
     }
-    button:hover {
-      background: #ff5252;
-      transform: translateY(-2px);
+    #start {
+      background: #ff6b6b;
+      color: #fff;
     }
-    button:disabled { 
-      opacity: 0.6; 
-      cursor: not-allowed;
-      transform: none;
+    #start:disabled {
+      opacity: 0.6;
     }
-
     .mask {
       position: fixed; top:0; left:0; width:100%; height:100%;
       background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
       z-index: 999;
     }
-    .result {
-      background: white; padding: 40px; border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      text-align: center;
+    .result-box, .tip-box {
+      background: #fff; padding: 36px; border-radius: 20px; text-align: center;
     }
-    .result h3 { font-size: 24px; margin-bottom: 10px; }
-    .result h2 { color: #ff6b6b; font-size: 36px; margin: 20px 0; }
+    .result-box h2 {
+      color: #ff6b6b;
+      font-size: 32px;
+      margin: 16px 0;
+    }
+    .tip-box p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
 
-<h1>今晚吃什么？</h1>
-
-<div class="wheel-box">
-  <div class="pointer"></div>
-  <canvas id="wheel" width="350" height="350"></canvas>
+<div class="sidebar">
+  <h2>推荐菜单</h2>
+  <div class="filter-group">
+    <label>选择场景</label>
+    <button class="tag" data-key="type外卖">外卖</button>
+    <button class="tag" data-key="type家常菜">家常菜</button>
+    <button class="tag" data-key="type吃辣">吃辣</button>
+    <button class="tag" data-key="type不吃辣">不吃辣</button>
+    <button class="tag" data-key="type减脂餐">减脂餐</button>
+    <button class="tag" data-key="type大吃一顿">大吃一顿</button>
+  </div>
+  <button class="btn-generate" onclick="generateWheel()">生成转盘</button>
 </div>
 
-<div class="btn-group">
-  <button id="start" onclick="roll()">开始抽奖</button>
-  <button onclick="editFoods()">编辑菜品</button>
+<div class="main">
+  <h1>今晚吃什么？</h1>
+  <div class="wheel-box">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="360" height="360"></canvas>
+  </div>
+  <div class="btn-group">
+    <button id="start" onclick="roll()">开始抽奖</button>
+  </div>
 </div>
 
-<div id="resultMask" class="mask" style="display:none;">
-  <div class="result">
+<div class="mask" id="resultMask" style="display:none">
+  <div class="result-box">
     <h3>🎉 抽中啦！</h3>
     <h2 id="resultFood"></h2>
     <button onclick="closeResult()">确定</button>
   </div>
 </div>
 
+<div class="mask" id="tipMask" style="display:none">
+  <div class="tip-box">
+    <p>你是不是不饿？</p>
+    <button onclick="closeTip()">关闭</button>
+  </div>
+</div>
+
 <script>
-  // 默认菜品
-  const defaultFoods = ['火锅','烧烤','麻辣烫','披萨','汉堡','拉面','炒饭','饺子','寿司','炒菜'];
-  let foods = JSON.parse(localStorage.getItem('foods')) || defaultFoods;
+// ===================== 50+ 菜品库 =====================
+const foodLibrary = [
+  { name:"黄焖鸡", tags:["外卖","家常菜","吃辣"] },
+  { name:"麻辣香锅", tags:["外卖","吃辣","大吃一顿"] },
+  { name:"麻辣烫", tags:["外卖","吃辣"] },
+  { name:"螺蛳粉", tags:["外卖","吃辣"] },
+  { name:"火锅", tags:["大吃一顿","吃辣"] },
+  { name:"烤肉", tags:["大吃一顿"] },
+  { name:"炸鸡", tags:["外卖","大吃一顿"] },
+  { name:"汉堡", tags:["外卖"] },
+  { name:"披萨", tags:["外卖"] },
+  { name:"寿司", tags:["外卖"] },
+  { name:"拉面", tags:["外卖"] },
+  { name:"炒饭", tags:["外卖","家常菜"] },
+  { name:"炒面", tags:["外卖","家常菜"] },
+  { name:"饺子", tags:["家常菜","不吃辣"] },
+  { name:"馄饨", tags:["家常菜","不吃辣"] },
+  { name:"牛肉面", tags:["外卖","吃辣"] },
+  { name:"酸菜鱼", tags:["家常菜","吃辣"] },
+  { name:"水煮鱼", tags:["家常菜","吃辣"] },
+  { name:"回锅肉", tags:["家常菜","吃辣"] },
+  { name:"鱼香肉丝", tags:["家常菜","吃辣"] },
+  { name:"宫保鸡丁", tags:["家常菜","吃辣"] },
+  { name:"麻婆豆腐", tags:["家常菜","吃辣"] },
+  { name:"辣子鸡", tags:["家常菜","吃辣"] },
+  { name:"毛血旺", tags:["家常菜","吃辣"] },
+  { name:"番茄炒蛋", tags:["家常菜","不吃辣"] },
+  { name:"土豆丝", tags:["家常菜","不吃辣"] },
+  { name:"红烧肉", tags:["家常菜","大吃一顿"] },
+  { name:"糖醋排骨", tags:["家常菜","不吃辣"] },
+  { name:"清蒸鱼", tags:["家常菜","不吃辣"] },
+  { name:"白切鸡", tags:["家常菜","不吃辣"] },
+  { name:"烤冷面", tags:["外卖"] },
+  { name:"手抓饼", tags:["外卖"] },
+  { name:"煎饼果子", tags:["外卖"] },
+  { name:"沙县小吃", tags:["外卖"] },
+  { name:"兰州拉面", tags:["外卖"] },
+  { name:"沙拉", tags:["减脂餐","外卖"] },
+  { name:"鸡胸肉", tags:["减脂餐"] },
+  { name:"荞麦面", tags:["减脂餐"] },
+  { name:"水煮菜", tags:["减脂餐"] },
+  { name:"蒸蛋", tags:["减脂餐","家常菜"] },
+  { name:"豆腐汤", tags:["减脂餐","家常菜"] },
+  { name:"紫菜蛋花汤", tags:["家常菜","不吃辣"] },
+  { name:"青椒肉丝", tags:["家常菜","吃辣"] },
+  { name:"蒜苔炒肉", tags:["家常菜"] },
+  { name:"西兰花炒虾仁", tags:["减脂餐","家常菜"] },
+  { name:"烤鸡翅", tags:["大吃一顿"] },
+  { name:"小龙虾", tags:["大吃一顿","吃辣"] },
+  { name:"牛蛙", tags:["吃辣","大吃一顿"] },
+  { name:"煲仔饭", tags:["外卖","不吃辣"] },
+  { name:"云吞面", tags:["外卖","不吃辣"] }
+];
 
-  const canvas = document.getElementById('wheel');
-  const ctx = canvas.getContext('2d');
-  const startBtn = document.getElementById('start');
-  const resultMask = document.getElementById('resultMask');
-  const resultFood = document.getElementById('resultFood');
-  
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const radius = canvas.width / 2 - 10;
-  let currentAngle = 0; // 当前转盘角度
-  let isRolling = false;
+// ===================== 全局状态 =====================
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const centerX = canvas.width/2, centerY = canvas.height/2;
+const radius = canvas.width/2 - 12;
 
-  // 转盘颜色（10种，对应10个菜品，循环使用）
-  const colors = [
-    '#ff6b6b', '#ff9f43', '#ffd93d', '#6bcb77', '#4ecdc4',
-    '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9', '#a29bfe'
-  ];
+let currentAngle = 0;
+let isRolling = false;
+let lastFood = null;
+let rollCount = 0;
 
-  // 绘制转盘（核心：分区清晰、文字正立、不重叠）
-  function drawWheel() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const len = foods.length;
-    const anglePer = (2 * Math.PI) / len; // 每个分区的弧度
+let selectedTags = new Set();
+let currentFoods = [];
 
-    foods.forEach((food, i) => {
-      // 绘制扇形
-      const startAngle = currentAngle + i * anglePer;
-      const endAngle = currentAngle + (i + 1) * anglePer;
-      
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-      ctx.closePath();
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+const colors = ["#ff6b6b","#ff9f43","#ffd93d","#6bcb77","#4ecdc4","#45b7d1","#96ceb4","#ffeaa7","#dfe6e9","#a29bfe"];
 
-      // 绘制文字（保证正立、居中）
-      const textAngle = startAngle + anglePer / 2;
-      const textX = centerX + Math.cos(textAngle) * (radius * 0.6);
-      const textY = centerY + Math.sin(textAngle) * (radius * 0.6);
-      
-      ctx.save();
-      ctx.translate(textX, textY);
-      ctx.rotate(textAngle + Math.PI / 2); // 文字旋转，保证正立
-      ctx.fillStyle = '#333';
-      ctx.font = 'bold 16px "Microsoft Yahei"';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(food, 0, 0);
-      ctx.restore();
-    });
+// ===================== 筛选标签 =====================
+document.querySelectorAll('.tag').forEach(btn => {
+  btn.onclick = () => {
+    const key = btn.dataset.key;
+    btn.classList.toggle('active');
+    if (selectedTags.has(key)) selectedTags.delete(key);
+    else selectedTags.add(key);
   }
+});
 
-  // 抽奖动画（丝滑不卡顿）
-  function roll() {
-    if (isRolling || foods.length < 2) return;
-    isRolling = true;
-    startBtn.disabled = true;
-    startBtn.innerText = '抽奖中...';
-
-    // 随机旋转角度（5-8圈，增加抽奖感）
-    const spinAngle = Math.floor(Math.random() * 360) + 1800;
-    const totalAngle = currentAngle + spinAngle;
-    const duration = 3000; // 3秒动画
-    const startTime = performance.now();
-
-    // 动画帧
-    function animate(now) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // 缓动函数：先快后慢，更真实
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      
-      currentAngle = (currentAngle + (spinAngle * easeProgress)) % (2 * Math.PI);
-      drawWheel();
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        // 动画结束，计算结果
-        const len = foods.length;
-        const anglePer = (2 * Math.PI) / len;
-        // 指针在正上方（-90度），计算对应索引
-        const normalizedAngle = (2 * Math.PI - currentAngle) % (2 * Math.PI);
-        const idx = Math.floor(normalizedAngle / anglePer);
-        const res = foods[idx];
-
-        resultFood.innerText = res;
-        resultMask.style.display = 'flex';
-        
-        // 保存历史
-        const history = JSON.parse(localStorage.getItem('history')) || [];
-        history.unshift({ food: res, time: new Date().toLocaleString() });
-        localStorage.setItem('history', JSON.stringify(history.slice(0,50)));
-
-        isRolling = false;
-        startBtn.disabled = false;
-        startBtn.innerText = '开始抽奖';
-      }
-    }
-
-    requestAnimationFrame(animate);
-  }
-
-  // 关闭结果弹窗
-  function closeResult() {
-    resultMask.style.display = 'none';
-  }
-
-  // 编辑菜品
-  function editFoods() {
-    const f = prompt('输入菜品，用逗号分隔', foods.join('，'));
-    if (!f) return;
-    foods = f.split('，').map(x=>x.trim()).filter(x=>x);
-    if (foods.length < 2) {
-      alert('至少需要2个菜品哦！');
-      foods = defaultFoods;
-    }
-    localStorage.setItem('foods', JSON.stringify(foods));
-    currentAngle = 0; // 重置角度，重新绘制
-    drawWheel();
-  }
-
-  // 初始化
+// ===================== 生成符合条件的转盘 =====================
+function generateWheel() {
+  let tags = Array.from(selectedTags);
+  let list = foodLibrary.filter(item => {
+    return tags.every(t => item.tags.includes(t.replace('type','')));
+  });
+  if (list.length < 2) list = foodLibrary.slice(0,10);
+  currentFoods = [...list];
+  lastFood = null;
+  rollCount = 0;
+  currentAngle = 0;
   drawWheel();
+}
+
+// ===================== 绘制转盘 =====================
+function drawWheel() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const n = currentFoods.length;
+  const step = (Math.PI*2)/n;
+  currentFoods.forEach((food,i) => {
+    const start = currentAngle + i*step;
+    const end = start + step;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, start, end);
+    ctx.closePath();
+    ctx.fillStyle = colors[i%colors.length];
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const ang = start + step/2;
+    const x = centerX + Math.cos(ang)*(radius*0.65);
+    const y = centerY + Math.sin(ang)*(radius*0.65);
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(ang + Math.PI/2);
+    ctx.fillStyle = "#222";
+    ctx.font = "bold 15px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(food.name,0,0);
+    ctx.restore();
+  });
+}
+
+// ===================== 抽奖（禁止连续重复） =====================
+function roll() {
+  if (isRolling || currentFoods.length < 2) return;
+  isRolling = true;
+  start.disabled = true;
+  start.innerText = "抽奖中...";
+
+  const total = 1800 + Math.random()*360;
+  const dur = 3000;
+  const st = performance.now();
+
+  function anim(now) {
+    const p = Math.min((now-st)/dur, 1);
+    const k = 1-Math.pow(1-p,3);
+    currentAngle += (total*k)/180*Math.PI/120;
+    drawWheel();
+    if (p < 1) requestAnimationFrame(anim);
+    else endRoll();
+  }
+  requestAnimationFrame(anim);
+}
+
+function endRoll() {
+  const n = currentFoods.length;
+  const step = (Math.PI*2)/n;
+  const norm = (Math.PI*2 - (currentAngle % (Math.PI*2))) % (Math.PI*2);
+  let idx = Math.floor(norm / step);
+
+  // 禁止连续重复
+  if (n >= 2 && currentFoods[idx].name === lastFood) {
+    idx = (idx + 1) % n;
+  }
+  const res = currentFoods[idx].name;
+  lastFood = res;
+  rollCount++;
+
+  resultFood.innerText = res;
+  resultMask.style.display = "flex";
+  isRolling = false;
+  start.disabled = false;
+  start.innerText = "开始抽奖";
+
+  // 连续5次提示
+  if (rollCount >= 5) {
+    rollCount = 0;
+    tipMask.style.display = "flex";
+  }
+}
+
+function closeResult() { resultMask.style.display = "none"; }
+function closeTip() { tipMask.style.display = "none"; }
+
+// 初始化
+generateWheel();
 </script>
 </body>
 </html>
