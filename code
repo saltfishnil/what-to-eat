@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>今晚吃什么？</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+    body { background: #f7f8fa; text-align: center; padding: 20px; }
+    h1 { margin: 20px 0; color: #333; }
+    
+    .wheel-box {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 30px auto;
+    }
+    .pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 20px solid #ff6b6b;
+      z-index: 10;
+    }
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: white;
+      position: relative;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: transform 3s ease-out;
+    }
+    .item {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 50%;
+      height: 50%;
+      transform-origin: center bottom;
+      text-align: center;
+      padding-top: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 14px 30px;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:disabled { opacity: 0.6; }
+
+    .mask {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+    }
+    .result {
+      background: white; padding: 40px; border-radius: 16px;
+    }
+    .result h2 { color: #ff6b6b; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+<h1>今晚吃什么？</h1>
+
+<div class="wheel-box">
+  <div class="pointer"></div>
+  <div class="wheel" id="wheel"></div>
+</div>
+
+<button id="start" onclick="roll()">开始抽奖</button>
+<button onclick="editFoods()">编辑菜品</button>
+
+<div id="resultMask" class="mask" style="display:none;">
+  <div class="result">
+    <h3>抽中啦！</h3>
+    <h2 id="resultFood"></h2>
+    <button onclick="closeResult()">确定</button>
+  </div>
+</div>
+
+<script>
+  // 默认菜品
+  let foods = JSON.parse(localStorage.getItem('foods')) || [
+    '火锅','烧烤','麻辣烫','披萨','汉堡','拉面','炒饭','饺子','寿司','炒菜'
+  ];
+
+  const wheel = document.getElementById('wheel');
+  const startBtn = document.getElementById('start');
+  const resultMask = document.getElementById('resultMask');
+  const resultFood = document.getElementById('resultFood');
+  let rolling = false;
+
+  // 画转盘
+  function renderWheel() {
+    wheel.innerHTML = '';
+    const len = foods.length;
+    foods.forEach((food, i) => {
+      const item = document.createElement('div');
+      item.className = 'item';
+      item.style.transform = `rotate(${i * (360 / len)}deg)`;
+      item.innerText = food;
+      wheel.appendChild(item);
+    });
+  }
+
+  // 抽奖
+  function roll() {
+    if (rolling || foods.length < 2) return;
+    rolling = true;
+    startBtn.disabled = true;
+    startBtn.innerText = '抽奖中...';
+
+    const angle = Math.floor(Math.random() * 360) + 720;
+    wheel.style.transform = `rotate(${angle}deg)`;
+
+    setTimeout(() => {
+      const idx = Math.floor(((-angle % 360) + 360) % 360 / (360 / foods.length));
+      const res = foods[idx];
+      resultFood.innerText = res;
+      resultMask.style.display = 'flex';
+      
+      // 保存历史
+      const history = JSON.parse(localStorage.getItem('history')) || [];
+      history.unshift({ food: res, time: new Date().toLocaleString() });
+      localStorage.setItem('history', JSON.stringify(history.slice(0,50)));
+
+      rolling = false;
+      startBtn.disabled = false;
+      startBtn.innerText = '开始抽奖';
+    }, 3000);
+  }
+
+  function closeResult() {
+    resultMask.style.display = 'none';
+  }
+
+  function editFoods() {
+    const f = prompt('输入菜品，用逗号分隔', foods.join('，'));
+    if (!f) return;
+    foods = f.split('，').map(x=>x.trim()).filter(x=>x);
+    localStorage.setItem('foods', JSON.stringify(foods));
+    renderWheel();
+  }
+
+  renderWheel();
+</script>
+</body>
+</html>
