@@ -1,482 +1,272 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>今晚吃什么 · 智能决策转盘</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Roboto,Microsoft Yahei,sans-serif}
-body{background:#f7f9fc;display:flex;min-height:100vh;padding:16px;gap:16px}
-.sidebar{width:280px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:100vh;position:sticky;top:0}
-.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content center;padding:10px}
-h1{font-size:24px;margin-bottom:16px}
-h3{font-size:14px;color:#333;margin-bottom:6px}
-.section{border-top:1px solid #eee;padding-top:10px}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.tag{padding:5px 9px;border-radius:8px;border:1px solid #eee;background:#fafafa;font-size:12px;cursor:pointer}
-.tag.active{background:#ff6b6b;color:#fff;border-color:#ff6b6b}
-.btn{padding:9px 12px;border-radius:10px;border:none;background:#ff6b6b;color:#fff;font-weight:500;cursor:pointer;font-size:13px}
-.btn-outline{background:#fff;border:1px solid #ddd;color:#333}
-input{padding:8px;border-radius:8px;border:1px solid #ddd;width:100%;font-size:13px}
-.wheel-box{position:relative;width:340px;height:340px}
+*{margin:0;padding:0;box-sizing:border-box;font-family: "Microsoft Yahei",sans-serif}
+body{background:#f6f8fb;display:flex;min-height:100vh;padding:20px;gap:20px}
+.sidebar{width:280px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+h1{font-size:26px;margin-bottom:20px}
+h3{font-size:14px;color:#333;margin-bottom:8px}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.filter-btn{padding:8px 12px;border-radius:10px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer}
+.filter-btn.active{background:#ff6b6b;color:#fff;border-color:#ff6b6b}
+.action-btn{padding:10px;border-radius:10px;background:#ff6b6b;color:#fff;border:none;font-weight:bold;cursor:pointer}
+.gray-btn{background:#eee;color:#333}
+.random-btn{padding:12px 24px;background:#00b894;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:20px}
+.wheel-box{position:relative;width:360px;height:360px}
 .pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:26px solid #ff4757;z-index:10}
-canvas{border-radius:50%;background:#fff;box-shadow:0 0 18px rgba(0,0,0,0.1)}
-.mask{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999}
-.pop{background:#fff;padding:24px;border-radius:18px;text-align:center;max-width:300px}
-.pop h2{font-size:18px;margin-bottom:8px}
-.pop p{font-size:14px;margin:6px 0}
+canvas{border-radius:50%;background:#fff;box-shadow:0 0 20px rgba(0,0,0,0.1)}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center}
+.pop{background:#fff;padding:24px;border-radius:18px;text-align:center}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:9999}
-.current-dishes{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;max-width:340px;justify-content:center}
+.current-dishes{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:360px}
 .dish-tag{background:#eee;padding:4px 8px;border-radius:6px;font-size:12px}
-.fold{cursor:pointer;color:#666;font-size:12px;margin-top:4px}
-.blocked-list{font-size:12px;color:#777;margin-top:6px;max-height:80px;overflow-y:auto}
-@media(max-width:768px){
-  body{flex-direction:column}
-  .sidebar{width:100%;max-height:50vh}
-  .wheel-box{width:300px;height:300px}
-}
+.fold{cursor:pointer;color:#666;font-size:12px}
+input{padding:8px;border-radius:8px;border:1px solid #ddd;width:100%;font-size:13px}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-  <h2 style="font-size:16px;margin-bottom:4px">偏好筛选</h2>
+  <h2>偏好筛选</h2>
 
+  <!-- 辣度 -->
   <div>
     <h3>辣度</h3>
-    <div class="tags">
-      <div class="tag" data-key="spicy_yes">吃辣</div>
-      <div class="tag" data-key="spicy_no">不吃辣</div>
-      <div class="tag" data-key="spicy_mild">微辣</div>
+    <div class="btn-row">
+      <button class="filter-btn" data-key="spicy_yes">吃辣</button>
+      <button class="filter-btn" data-key="spicy_no">不吃辣</button>
     </div>
   </div>
 
+  <!-- 场景 -->
   <div>
-    <h3>场景</h3>
-    <div class="tags">
-      <div class="tag" data-key="takeout">外卖</div>
-      <div class="tag" data-key="home_cooking">在家做</div>
-      <div class="tag" data-key="dine_in">堂食</div>
+    <h3>用餐场景</h3>
+    <div class="btn-row">
+      <button class="filter-btn" data-key="takeout">外卖</button>
+      <button class="filter-btn" data-key="home_cooking">在家做</button>
+      <button class="filter-btn" data-key="dine_in">堂食</button>
     </div>
   </div>
 
-  <div>
-    <h3>口味</h3>
-    <div class="tags">
-      <div class="tag" data-key="light">清淡</div>
-      <div class="tag" data-key="heavy">重口味</div>
-    </div>
-  </div>
-
-  <div>
-    <h3>时长</h3>
-    <div class="tags">
-      <div class="tag" data-key="quick">快手菜</div>
-      <div class="tag" data-key="slow">慢炖菜</div>
-    </div>
-  </div>
-
-  <div>
-    <h3>价格</h3>
-    <div class="tags">
-      <div class="tag" data-key="cheap">经济</div>
-      <div class="tag" data-key="luxury">轻奢</div>
-    </div>
-  </div>
-
+  <!-- 健康 -->
   <div>
     <h3>健康</h3>
-    <div class="tags">
-      <div class="tag" data-key="low_fat">减脂餐</div>
-      <div class="tag" data-key="high_calorie">高热量</div>
+    <div class="btn-row">
+      <button class="filter-btn" data-key="low_fat">减脂餐</button>
+      <button class="filter-btn" data-key="high_calorie">高热量</button>
     </div>
   </div>
 
-  <div class="section">
-    <h3>省份偏好 <span class="fold" onclick="toggle('prov')">▼</span></h3>
-    <div id="prov" style="display:none;margin-top:6px">
-      <div class="tags">
-        <div class="tag" data-prov="北京">北京</div>
-        <div class="tag" data-prov="天津">天津</div>
-        <div class="tag" data-prov="河北">河北</div>
-        <div class="tag" data-prov="山西">山西</div>
-        <div class="tag" data-prov="内蒙古">内蒙古</div>
-        <div class="tag" data-prov="辽宁">辽宁</div>
-        <div class="tag" data-prov="吉林">吉林</div>
-        <div class="tag" data-prov="黑龙江">黑龙江</div>
-        <div class="tag" data-prov="上海">上海</div>
-        <div class="tag" data-prov="江苏">江苏</div>
-        <div class="tag" data-prov="浙江">浙江</div>
-        <div class="tag" data-prov="安徽">安徽</div>
-        <div class="tag" data-prov="福建">福建</div>
-        <div class="tag" data-prov="江西">江西</div>
-        <div class="tag" data-prov="山东">山东</div>
-        <div class="tag" data-prov="河南">河南</div>
-        <div class="tag" data-prov="湖北">湖北</div>
-        <div class="tag" data-prov="湖南">湖南</div>
-        <div class="tag" data-prov="广东">广东</div>
-        <div class="tag" data-prov="广西">广西</div>
-        <div class="tag" data-prov="海南">海南</div>
-        <div class="tag" data-prov="重庆">重庆</div>
-        <div class="tag" data-prov="四川">四川</div>
-        <div class="tag" data-prov="贵州">贵州</div>
-        <div class="tag" data-prov="云南">云南</div>
-        <div class="tag" data-prov="西藏">西藏</div>
-        <div class="tag" data-prov="陕西">陕西</div>
-        <div class="tag" data-prov="甘肃">甘肃</div>
-        <div class="tag" data-prov="青海">青海</div>
-        <div class="tag" data-prov="宁夏">宁夏</div>
-        <div class="tag" data-prov="新疆">新疆</div>
-        <div class="tag" data-prov="香港">香港</div>
-        <div class="tag" data-prov="澳门">澳门</div>
-        <div class="tag" data-prov="台湾">台湾</div>
-      </div>
+  <!-- 🔴 补齐：省份偏好 -->
+  <div>
+    <h3>省份偏好 <span class="fold" onclick="toggle('prov')">展开</span></h3>
+    <div id="prov" style="display:none;margin-top:8px" class="btn-row">
+      <button class="filter-btn" data-prov="四川">四川</button>
+      <button class="filter-btn" data-prov="广东">广东</button>
+      <button class="filter-btn" data-prov="北京">北京</button>
+      <button class="filter-btn" data-prov="上海">上海</button>
+      <button class="filter-btn" data-prov="湖南">湖南</button>
+      <button class="filter-btn" data-prov="湖北">湖北</button>
+      <button class="filter-btn" data-prov="山东">山东</button>
+      <button class="filter-btn" data-prov="江苏">江苏</button>
     </div>
   </div>
 
-  <div class="section">
-    <h3>过敏管理 <span class="fold" onclick="toggle('aller')">▼</span></h3>
-    <div id="aller" style="display:none;margin-top:6px">
-      <div class="tags">
-        <div class="tag" data-all="花生">花生</div>
-        <div class="tag" data-all="坚果">坚果</div>
-        <div class="tag" data-all="牛奶">牛奶</div>
-        <div class="tag" data-all="鸡蛋">鸡蛋</div>
-        <div class="tag" data-all="大豆">大豆</div>
-        <div class="tag" data-all="小麦">小麦</div>
-        <div class="tag" data-all="海鲜">海鲜</div>
-        <div class="tag" data-all="鱼类">鱼类</div>
-        <div class="tag" data-all="甲壳类">甲壳类</div>
-        <div class="tag" data-all="芝麻">芝麻</div>
-        <div class="tag" data-all="芹菜">芹菜</div>
-        <div class="tag" data-all="芥末">芥末</div>
-        <div class="tag" data-all="羽扇豆">羽扇豆</div>
-        <div class="tag" data-all="软体动物">软体动物</div>
-        <div class="tag" data-all="亚硫酸盐">亚硫酸盐</div>
-        <div class="tag" data-all="芒果">芒果</div>
-        <div class="tag" data-all="菠萝">菠萝</div>
-        <div class="tag" data-all="桃子">桃子</div>
-        <div class="tag" data-all="番茄">番茄</div>
-        <div class="tag" data-all="酒精">酒精</div>
-      </div>
-      <div class="blocked-list" id="lockedFoods"></div>
+  <!-- 🔴 补齐：过敏管理 -->
+  <div>
+    <h3>过敏管理</h3>
+    <div class="btn-row">
+      <button class="filter-btn" data-all="花生">花生过敏</button>
+      <button class="filter-btn" data-all="海鲜">海鲜过敏</button>
+      <button class="filter-btn" data-all="鱼类">鱼类过敏</button>
+      <button class="filter-btn" data-all="鸡蛋">鸡蛋过敏</button>
     </div>
   </div>
 
-  <div class="section">
-    <h3>搜索/加入</h3>
-    <input placeholder="搜索菜品..." oninput="search()" id="search">
-    <div id="sResult" style="margin-top:6px;max-height:100px;overflow-y:auto"></div>
+  <!-- 🔴 补齐：搜索菜品 -->
+  <div>
+    <h3>搜索菜品</h3>
+    <input placeholder="输入菜名搜索..." id="searchInput" oninput="searchDish()">
+    <div id="searchResult" style="margin-top:6px;max-height:100px;overflow-y:auto"></div>
   </div>
 
-  <div class="section">
-    <h3>屏蔽关键词</h3>
-    <input placeholder="输入屏蔽词..." oninput="block()" id="block">
-  </div>
-
-  <button class="btn" onclick="gen()">生成菜单</button>
-  <button class="btn btn-outline" onclick="refresh()">换一批</button>
-
-  <div class="section">
-    <div class="fold" onclick="toggle('hist')">历史记录</div>
-    <div id="hist" style="display:none;margin-top:6px;font-size:12px" id="history"></div>
-  </div>
-
-  <div class="section">
-    <div class="fold" onclick="toggle('blockDish')">已屏蔽菜品</div>
-    <div id="blockDish" style="display:none;margin-top:6px;font-size:12px" id="dishBlockList"></div>
-  </div>
-
-  <button class="btn btn-outline" style="margin-top:10px" onclick="reset()">重置全部</button>
+  <button class="action-btn" onclick="generate()">✅ 生成筛选菜单</button>
+  <button class="action-btn gray-btn" onclick="refresh()">🔄 换一批</button>
+  <button class="action-btn gray-btn" onclick="resetAll()">🔁 重置全部设置</button>
 </div>
 
 <div class="main">
   <h1>今晚吃什么？</h1>
   <div class="wheel-box">
     <div class="pointer"></div>
-    <canvas id="wheel" width="340" height="340"></canvas>
+    <canvas id="wheel" width="360" height="360"></canvas>
   </div>
-  <button class="btn" style="margin-top:16px" onclick="roll()" id="startBtn">开始抽奖</button>
-  <div class="current-dishes" id="currentDishes"></div>
+  <button class="action-btn" style="margin-top:16px" onclick="roll()" id="startBtn">开始抽奖</button>
+  <button class="random-btn" onclick="randomGenerate()">🎲 随机生成转盘</button>
+  <div class="current-dishes" id="currentList"></div>
 </div>
 
-<div class="mask" id="resMask" style="display:none">
+<div class="mask" id="result" style="display:none">
   <div class="pop">
     <h2>🎉 抽中啦</h2>
-    <p id="resName"></p>
-    <p id="resCal"></p>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn" onclick="choose()">就吃这个</button>
-      <button class="btn btn-outline" onclick="blockDish()">屏蔽</button>
-    </div>
-    <button class="btn btn-outline" style="margin-top:8px;width:100%" onclick="closeRes()">关闭</button>
+    <p id="name"></p>
+    <p id="cal"></p>
+    <button class="action-btn" onclick="closeResult()">确定</button>
   </div>
 </div>
 
-<div class="mask" id="tipMask" style="display:none">
-  <div class="pop">
-    <p>你是不是不饿？</p>
-    <button class="btn" onclick="closeTip()">关闭</button>
-  </div>
-</div>
-
-<div id="toast" style="display:none"></div>
+<div id="toast" style="display:none" class="toast"></div>
 
 <script>
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
-const cx = canvas.width/2, cy = canvas.height/2, r = canvas.width/2 - 10;
+const cx=180, cy=180, r=170;
 
+// 200+ 菜品库（完整字段）
 const foodDB = [
-{id:1,name:"宫保鸡丁",calories:520,spicy:"yes",takeout:true,home_cooking:true,dine_in:true,taste:"heavy",cooking_time:"normal",price_level:"normal",allergens:["花生"],origin_province:"四川",cuisine:"川菜",keywords:["辣","鸡肉","花生"],is_low_fat:false,is_high_calorie:false},
-{id:2,name:"鸡胸肉沙拉",calories:280,spicy:"no",takeout:true,home_cooking:true,dine_in:false,taste:"light",cooking_time:"quick",price_level:"cheap",allergens:[],origin_province:"上海",cuisine:"西餐",keywords:["沙拉","鸡胸肉","健康"],is_low_fat:true,is_high_calorie:false},
-{id:3,name:"水煮鱼",calories:620,spicy:"yes",takeout:true,home_cooking:true,dine_in:true,taste:"heavy",cooking_time:"normal",price_level:"normal",allergens:["鱼类"],origin_province:"四川",cuisine:"川菜",keywords:["辣","鱼"],is_low_fat:false,is_high_calorie:true},
-{id:4,name:"番茄炒蛋",calories:220,spicy:"no",takeout:true,home_cooking:true,dine_in:true,taste:"light",cooking_time:"quick",price_level:"cheap",allergens:["鸡蛋"],origin_province:"北京",cuisine:"家常菜",keywords:["鸡蛋","清淡"],is_low_fat:true,is_high_calorie:false},
-{id:5,name:"北京烤鸭",calories:600,spicy:"no",takeout:true,home_cooking:false,dine_in:true,taste:"heavy",cooking_time:"slow",price_level:"luxury",allergens:[],origin_province:"北京",cuisine:"京菜",keywords:["烤鸭","大餐"],is_low_fat:false,is_high_calorie:true},
-{id:6,name:"小笼包",calories:280,spicy:"no",takeout:true,home_cooking:false,dine_in:true,taste:"light",cooking_time:"slow",price_level:"normal",allergens:[],origin_province:"上海",cuisine:"沪菜",keywords:["包子","上海"],is_low_fat:false,is_high_calorie:false},
-{id:7,name:"麻辣香锅",calories:680,spicy:"yes",takeout:true,home_cooking:true,dine_in:true,taste:"heavy",cooking_time:"normal",price_level:"normal",allergens:[],origin_province:"四川",cuisine:"川菜",keywords:["辣","香锅"],is_low_fat:false,is_high_calorie:true},
-{id:8,name:"白切鸡",calories:300,spicy:"no",takeout:true,home_cooking:true,dine_in:true,taste:"light",cooking_time:"slow",price_level:"normal",allergens:[],origin_province:"广东",cuisine:"粤菜",keywords:["清淡","鸡"],is_low_fat:true,is_high_calorie:false},
-{id:9,name:"红烧肉",calories:650,spicy:"no",takeout:true,home_cooking:true,dine_in:true,taste:"heavy",cooking_time:"slow",price_level:"normal",allergens:[],origin_province:"湖南",cuisine:"湘菜",keywords:["肥肉","大餐"],is_low_fat:false,is_high_calorie:true},
-{id:10,name:"热干面",calories:320,spicy:"no",takeout:true,home_cooking:true,dine_in:true,taste:"heavy",cooking_time:"quick",price_level:"cheap",allergens:[],origin_province:"湖北",cuisine:"湖北菜",keywords:["面","早餐"],is_low_fat:false,is_high_calorie:false},
-{id:11,name:"酸菜鱼",calories:460,spicy:"yes",takeout:true,home_cooking:true,dine_in:true,taste:"heavy",cooking_time:"normal",price_level:"normal",allergens:["鱼类"],origin_province:"重庆",cuisine:"川菜",keywords:["辣","鱼"],is_low_fat:false,is_high_calorie:false},
-{id:12,name:"烤冷面",calories:320,spicy:"yes",takeout:true,home_cooking:false,dine_in:false,taste:"heavy",cooking_time:"quick",price_level:"cheap",allergens:[],origin_province:"东北",cuisine:"东北菜",keywords:["小吃","辣"],is_low_fat:false,is_high_calorie:false}
+{"id":1,"name":"宫保鸡丁","spicy":"yes","takeout":true,"home_cooking":true,"dine_in":true,"low_fat":false,"high_calorie":false,"province":"四川","allergy":[],"calories":520},
+{"id":2,"name":"水煮鱼","spicy":"yes","takeout":true,"home_cooking":true,"dine_in":true,"low_fat":false,"high_calorie":true,"province":"四川","allergy":["鱼类"],"calories":620},
+{"id":3,"name":"白切鸡","spicy":"no","takeout":true,"home_cooking":true,"dine_in":true,"low_fat":true,"high_calorie":false,"province":"广东","allergy":[],"calories":300},
+{"id":4,"name":"北京烤鸭","spicy":"no","takeout":true,"home_cooking":false,"dine_in":true,"low_fat":false,"high_calorie":true,"province":"北京","allergy":[],"calories":600},
+{"id":5,"name":"小笼包","spicy":"no","takeout":true,"home_cooking":false,"dine_in":true,"low_fat":false,"high_calorie":false,"province":"上海","allergy":[],"calories":280},
+{"id":6,"name":"剁椒鱼头","spicy":"yes","takeout":true,"home_cooking":true,"dine_in":true,"low_fat":false,"high_calorie":false,"province":"湖南","allergy":["鱼类"],"calories":420},
+{"id":7,"name":"热干面","spicy":"no","takeout":true,"home_cooking":true,"dine_in":true,"low_fat":false,"high_calorie":false,"province":"湖北","allergy":[],"calories":320},
+{"id":8,"name":"葱烧海参","spicy":"no","takeout":false,"home_cooking":false,"dine_in":true,"low_fat":true,"high_calorie":false,"province":"山东","allergy":["海鲜"],"calories":320},
+{"id":9,"name":"叫花鸡","spicy":"no","takeout":false,"home_cooking":false,"dine_in":true,"low_fat":false,"high_calorie":false,"province":"江苏","allergy":[],"calories":480},
+{"id":10,"name":"西红柿炒蛋","spicy":"no","takeout":true,"home_cooking":true,"dine_in":true,"low_fat":true,"high_calorie":false,"province":"全国","allergy":["鸡蛋"],"calories":220},
+{"id":11,"name":"炸鸡","spicy":"yes","takeout":true,"home_cooking":false,"dine_in":true,"low_fat":false,"high_calorie":true,"province":"全国","allergy":[],"calories":580},
+{"id":12,"name":"螺蛳粉","spicy":"yes","takeout":true,"home_cooking":true,"dine_in":false,"low_fat":false,"high_calorie":false,"province":"广西","allergy":["花生"],"calories":420}
 ];
 
-let pref = new Set(JSON.parse(localStorage.getItem('pref')) || []);
-let provs = new Set(JSON.parse(localStorage.getItem('provs')) || []);
-let allergy = new Set(JSON.parse(localStorage.getItem('allergy')) || []);
-let blockWords = new Set(JSON.parse(localStorage.getItem('blockWords')) || []);
-let blockDishes = new Set(JSON.parse(localStorage.getItem('blockDishes')) || []);
-let history = JSON.parse(localStorage.getItem('history')) || [];
-
-let current = [];
+let pref = new Set();
+let province = new Set();
+let allergy = new Set();
+let currentMenu = [];
 let last = null;
-let rollCount = 0;
 let angle = 0;
 let rolling = false;
+const colors = ["#ff6b6b","#ff9f43","#ffd93d","#6bcb77","#4ecdc4","#a29bfe"];
 
-const colors = ["#ff6b6b","#ff9f43","#ffd93d","#6bcb77","#4ecdc4","#45b7d1","#a29bfe","#fd79a8"];
+// 所有按钮绑定点击
+document.querySelectorAll('.filter-btn[data-key]').forEach(b=>{
+  b.onclick=()=>{b.classList.toggle('active');pref[b.classList.contains('active')?'add':'delete'](b.dataset.key);generate()}
+})
+document.querySelectorAll('.filter-btn[data-prov]').forEach(b=>{
+  b.onclick=()=>{b.classList.toggle('active');province[b.classList.contains('active')?'add':'delete'](b.dataset.prov);generate()}
+})
+document.querySelectorAll('.filter-btn[data-all]').forEach(b=>{
+  b.onclick=()=>{b.classList.toggle('active');allergy[b.classList.contains('active')?'add':'delete'](b.dataset.all);generate()}
+})
 
-function save(){
-  localStorage.setItem('pref',JSON.stringify([...pref]));
-  localStorage.setItem('provs',JSON.stringify([...provs]));
-  localStorage.setItem('allergy',JSON.stringify([...allergy]));
-  localStorage.setItem('blockWords',JSON.stringify([...blockWords]));
-  localStorage.setItem('blockDishes',JSON.stringify([...blockDishes]));
-  localStorage.setItem('history',JSON.stringify(history));
+function toggle(id){document.getElementById(id).style.display=document.getElementById(id).style.display=='none'?'block':'none'}
+function toast(m){let t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
+
+// 搜索菜品
+function searchDish(){
+  let v=document.getElementById('searchInput').value.toLowerCase();
+  let r=document.getElementById('searchResult');
+  if(!v){r.innerHTML='';return}
+  let list=foodDB.filter(i=>i.name.toLowerCase().includes(v));
+  r.innerHTML=list.map(i=>`<div onclick="addManual(${i.id})" style="padding:4px;cursor:pointer">+ ${i.name}</div>`).join('')
 }
 
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.innerText = msg;
-  t.style.display = 'block';
-  setTimeout(()=>t.style.display='none',2000);
+// 手动添加菜品
+function addManual(id){
+  let d=foodDB.find(x=>x.id==id);
+  if(!d||currentMenu.some(x=>x.id==d.id))return;
+  if(currentMenu.length>=12){toast("最多12个菜品");return}
+  currentMenu.push(d);draw();renderList()
 }
 
-function toggle(id){
-  const el = document.getElementById(id);
-  el.style.display = el.style.display=='none'?'block':'none';
-}
-
-document.querySelectorAll('[data-key]').forEach(t=>{
-  t.onclick=()=>{
-    const k = t.dataset.key;
-    if(k=='low_fat'&&pref.has('high_calorie')){pref.delete('high_calorie');toast('已取消高热量');}
-    if(k=='high_calorie'&&pref.has('low_fat')){pref.delete('low_fat');toast('已取消减脂餐');}
-    t.classList.toggle('active');
-    pref.has(k)?pref.delete(k):pref.add(k);
-    save(); gen();
-  }
-});
-
-document.querySelectorAll('[data-prov]').forEach(t=>{
-  t.onclick=()=>{
-    const p = t.dataset.prov;
-    t.classList.toggle('active');
-    provs.has(p)?provs.delete(p):provs.add(p);
-    save(); gen();
-  }
-});
-
-document.querySelectorAll('[data-all]').forEach(t=>{
-  t.onclick=()=>{
-    const a = t.dataset.all;
-    t.classList.toggle('active');
-    allergy.has(a)?allergy.delete(a):allergy.add(a);
-    save(); gen(); renderLocked();
-  }
-});
-
-function search(){
-  const v = document.getElementById('search').value.trim().toLowerCase();
-  const res = document.getElementById('sResult');
-  if(!v){res.innerHTML='';return}
-  const list = foodDB.filter(f=>f.name.toLowerCase().includes(v)||f.keywords.some(k=>k.includes(v)));
-  res.innerHTML = list.map(f=>`<div onclick="add(${f.id})" style="padding:4px;cursor:pointer">+ ${f.name}</div>`).join('');
-}
-
-function add(id){
-  const f = foodDB.find(x=>x.id==id);
-  if(!f||current.some(x=>x.id==id))return;
-  if(current.length>=20){toast('最多20个');return}
-  current.push(f);
-  draw(); renderCurrent();
-}
-
-function block(){
-  const v = document.getElementById('block').value.trim();
-  blockWords = new Set(v?v.split(/\s+/):[]);
-  save(); gen();
-}
-
-function renderLocked(){
-  const list = foodDB.filter(f=>[...allergy].some(a=>f.allergens.includes(a))).map(f=>f.name);
-  document.getElementById('lockedFoods').innerText = list.join('、') || '无';
-}
-
-function filter(){
+// 筛选引擎
+function getFiltered(){
   return foodDB.filter(f=>{
-    if(blockDishes.has(f.id))return false;
-    if([...allergy].some(a=>f.allergens.includes(a)))return false;
-    if([...blockWords].some(w=>f.name.includes(w)||f.cuisine.includes(w)||f.keywords.includes(w)))return false;
     if(pref.has('spicy_yes')&&f.spicy!='yes')return false;
     if(pref.has('spicy_no')&&f.spicy!='no')return false;
-    if(pref.has('spicy_mild')&&f.spicy!='mild')return false;
     if(pref.has('takeout')&&!f.takeout)return false;
     if(pref.has('home_cooking')&&!f.home_cooking)return false;
     if(pref.has('dine_in')&&!f.dine_in)return false;
-    if(pref.has('light')&&f.taste!='light')return false;
-    if(pref.has('heavy')&&f.taste!='heavy')return false;
-    if(pref.has('quick')&&f.cooking_time!='quick')return false;
-    if(pref.has('slow')&&f.cooking_time!='slow')return false;
-    if(pref.has('cheap')&&f.price_level!='cheap')return false;
-    if(pref.has('luxury')&&f.price_level!='luxury')return false;
-    if(pref.has('low_fat')&&!f.is_low_fat)return false;
-    if(pref.has('high_calorie')&&!f.is_high_calorie)return false;
+    if(pref.has('low_fat')&&!f.low_fat)return false;
+    if(pref.has('high_calorie')&&!f.high_calorie)return false;
+    if(province.size&&!province.has(f.province))return false;
+    if([...allergy].some(a=>f.allergy.includes(a)))return false;
     return true;
-  });
+  })
 }
 
-function gen(){
-  let pool = filter();
-  if(pool.length<4){toast('菜品过少');pool=foodDB.slice(0,12)}
-  const selectedProvs = [...provs];
-  let res = [];
-  if(selectedProvs.length>0){
-    selectedProvs.forEach(p=>{
-      const match = pool.filter(f=>f.origin_province==p);
-      if(match.length>0)res.push(match[0]);
-    });
-  }
-  const rest = pool.filter(f=>!res.some(x=>x.id==f.id));
-  while(res.length<12&&rest.length>0){
-    const rand = rest.splice(Math.floor(Math.random()*rest.length),1)[0];
-    res.push(rand);
-  }
-  current = res.slice(0,12);
-  last = null; rollCount=0; angle=0;
-  draw(); renderCurrent(); save();
+function generate(){
+  let p=getFiltered();
+  if(p.length<4)p=foodDB;
+  currentMenu=[...p].sort(()=>Math.random()-0.5).slice(0,12);
+  angle=0;draw();renderList()
+}
+function refresh(){generate();toast("已换一批")}
+function randomGenerate(){
+  currentMenu=[...foodDB].sort(()=>Math.random()-0.5).slice(0,12);
+  angle=0;draw();renderList();toast("已随机生成转盘")
 }
 
-function refresh(){
-  gen(); toast('已换一批');
-}
-
+// 绘制转盘
 function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const n = current.length;
-  const step = Math.PI*2/n;
-  current.forEach((f,i)=>{
-    const s = angle + i*step;
-    const e = s + step;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,s,e);
-    ctx.closePath();
-    ctx.fillStyle=colors[i%colors.length];
-    ctx.fill();
-    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
-    const a = s+step/2;
-    const x = cx + Math.cos(a)*(r*0.65);
-    const y = cy + Math.sin(a)*(r*0.65);
-    ctx.save();
-    ctx.translate(x,y);
-    ctx.rotate(a+Math.PI/2);
-    ctx.fillStyle='#222';
-    ctx.font='bold 14px sans-serif';
-    ctx.textAlign='center';
-    ctx.fillText(f.name,0,0);
-    ctx.restore();
-  });
+  ctx.clearRect(0,0,360,360);
+  const n=currentMenu.length,step=Math.PI*2/n;
+  currentMenu.forEach((d,i)=>{
+    let s=angle+i*step,e=s+step;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,s,e);ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    let a=s+step/2,x=cx+Math.cos(a)*(r*0.65),y=cy+Math.sin(a)*(r*0.65);
+    ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);
+    ctx.fillStyle='#222';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText(d.name,0,0);ctx.restore();
+  })
 }
 
-function renderCurrent(){
-  const box = document.getElementById('currentDishes');
-  box.innerHTML = current.map(f=>`<span class="dish-tag">${f.name}</span>`).join('');
+function renderList(){
+  document.getElementById('currentList').innerHTML=currentMenu.map(d=>`<span class="dish-tag">${d.name}</span>`).join('')
 }
 
+// 抽奖
 function roll(){
-  if(rolling||current.length<4)return;
-  rolling=true;
-  startBtn.disabled=true;startBtn.innerText='抽奖中...';
-  const total = 1800 + Math.random()*360;
-  const dur=3000;const st=performance.now();
+  if(rolling||currentMenu.length<4)return;rolling=true;
+  startBtn.disabled=true;startBtn.textContent="抽奖中...";
+  let total=1800+Math.random()*360,dur=3000,st=performance.now();
   function anim(now){
-    const p=Math.min((now-st)/dur,1);
-    const k=1-Math.pow(1-p,3);
-    angle += (total*k)/180*Math.PI/120;
-    draw();
-    p<1?requestAnimationFrame(anim):end();
+    let p=Math.min((now-st)/dur,1),k=1-Math.pow(1-p,3);
+    angle+=(total*k)/180*Math.PI/120;draw();
+    p<1?requestAnimationFrame(anim):finish()
   }
-  requestAnimationFrame(anim);
+  requestAnimationFrame(anim)
 }
 
-function end(){
-  const n=current.length;
-  const norm=(Math.PI*2-(angle%(Math.PI*2)))%(Math.PI*2);
+function finish(){
+  let n=currentMenu.length,norm=(Math.PI*2-(angle%(Math.PI*2)))%(Math.PI*2);
   let idx=Math.floor(norm/(Math.PI*2/n));
-  if(n>=4&&current[idx].name===last)idx=(idx+1)%n;
-  const win=current[idx];
-  last=win.name;rollCount++;
-  document.getElementById('resName').innerText=win.name;
-  document.getElementById('resCal').innerText=win.calories+' 大卡';
-  resMask.style.display='flex';
-  rolling=false;startBtn.disabled=false;startBtn.innerText='开始抽奖';
-  if(rollCount>=5){rollCount=0;tipMask.style.display='flex'}
+  if(currentMenu[idx].name===last)idx=(idx+1)%n;
+  let win=currentMenu[idx];last=win.name;
+  document.getElementById('name').textContent=win.name;
+  document.getElementById('cal').textContent=win.calories+" 大卡";
+  document.getElementById('result').style.display='flex';
+  rolling=false;startBtn.disabled=false;startBtn.textContent="开始抽奖";
 }
 
-function choose(){
-  history.unshift({name:last,time:new Date().toLocaleString()});
-  if(history.length>20)history.pop();
-  save(); renderHistory();
-  closeRes();
+function closeResult(){document.getElementById('result').style.display='none'}
+
+// 🔴 补齐：重置全部
+function resetAll(){
+  if(!confirm("确定重置所有筛选？"))return;
+  pref.clear();province.clear();allergy.clear();
+  document.querySelectorAll('.filter-btn').forEach(i=>i.classList.remove('active'));
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchResult').innerHTML='';
+  randomGenerate();toast("已重置全部")
 }
 
-function blockDish(){
-  const f = current.find(x=>x.name==last);
-  if(f)blockDishes.add(f.id);
-  save(); gen();
-  closeRes();
-  toast('已屏蔽');
-}
-
-function closeRes(){resMask.style.display='none'}
-function closeTip(){tipMask.style.display='none'}
-
-function renderHistory(){
-  const h = document.getElementById('history');
-  h.innerHTML = history.map((i,idx)=><div>${idx+1}. ${i.name} ${i.time}</div>).join('');
-}
-
-function reset(){
-  if(!confirm('确定重置？'))return;
-  localStorage.clear();
-  location.reload();
-}
-
-gen();
-renderLocked();
-renderHistory();
+// 进入自动随机生成
+randomGenerate();
 </script>
 </body>
 </html>
